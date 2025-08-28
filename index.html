@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Delivery - Sri Lanka</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .app-title {
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .location-section {
+            margin-bottom: 25px;
+        }
+
+        .location-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .location-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .location-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .mic-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .mic-button.listening {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .go-button {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .go-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .go-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-message {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .location-suggestions {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            width: calc(100% - 60px);
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .map-button {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .map-button:hover {
+            background: #5a359a;
+        }
+
+        .listening-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <h1 class="app-title">Quick Ride</h1>
+        </div>
+
+        <div class="location-section">
+            <label class="location-label" for="pickup">🔵 Pickup Location</label>
+            <div style="position: relative;">
+                <input type="text" id="pickup" class="location-input" placeholder="Enter pickup address...">
+                <div id="pickup-suggestions" class="location-suggestions" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="location-section">
+            <label class="location-label" for="dropoff">🟢 Drop-off Location</label>
+            <div style="position: relative;">
+                <input type="text" id="dropoff" class="location-input" placeholder="Enter drop-off address...">
+                <div id="dropoff-suggestions" class="location-suggestions" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="mic-button" class="mic-button" title="Voice Input">
+                🎤
+                <div id="listening-indicator" class="listening-indicator" style="display: none;"></div>
+            </button>
+            <button id="go-button" class="go-button" disabled>Book Ride</button>
+        </div>
+
+        <div id="status" class="status-message" style="display: none;"></div>
+
+        <button id="open-maps" class="map-button" style="display: none;">Open in Google Maps</button>
+    </div>
+
+    <script>
+        class DeliveryApp {
+            constructor() {
+                this.pickupInput = document.getElementById('pickup');
+                this.dropoffInput = document.getElementById('dropoff');
+                this.micButton = document.getElementById('mic-button');
+                this.goButton = document.getElementById('go-button');
+                this.statusDiv = document.getElementById('status');
+                this.openMapsButton = document.getElementById('open-maps');
+                this.listeningIndicator = document.getElementById('listening-indicator');
+                
+                this.isListening = false;
+                this.currentInput = null;
+                this.recognition = null;
+                this.pickupLocation = '';
+                this.dropoffLocation = '';
+
+                // Sri Lankan locations database
+                this.sriLankanLocations = [
+                    'Colombo', 'Negombo', 'Kandy', 'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Anuradhapura',
+                    'Polonnaruwa', 'Trincomalee', 'Batticaloa', 'Ampara', 'Badulla', 'Bandarawela', 'Ella',
+                    'Nuwara Eliya', 'Hatton', 'Dambulla', 'Sigiriya', 'Hikkaduwa', 'Unawatuna', 'Mirissa',
+                    'Weligama', 'Tangalle', 'Arugam Bay', 'Pasikuda', 'Nilaveli', 'Kalkudah', 'Bentota',
+                    'Kalutara', 'Panadura', 'Moratuwa', 'Mount Lavinia', 'Dehiwala', 'Maharagama',
+                    'Kottawa', 'Homagama', 'Kaduwela', 'Sri Jayawardenepura', 'Malabe', 'Battaramulla',
+                    'Rajagiriya', 'Nugegoda', 'Kotte', 'Wellawatte', 'Bambalapitiya', 'Kollupitiya',
+                    'Fort', 'Pettah', 'Maradana', 'Dematagoda', 'Borella', 'Narahenpita', 'Kiribathgoda',
+                    'Kelaniya', 'Wattala', 'Ja-Ela', 'Ekala', 'Gampaha', 'Veyangoda', 'Mirigama',
+                    'Polgahawela', 'Kurunegala', 'Chilaw', 'Puttalam', 'Kalpitiya', 'Mannar', 'Vavuniya',
+                    'Mullaitivu', 'Kilinochchi', 'Point Pedro', 'Chavakachcheri', 'Valvettithurai',
+                    'Kankesanturai', 'Matale', 'Akuressa', 'Deniyaya', 'Embilipitiya', 'Ratnapura',
+                    'Balangoda', 'Kegalle', 'Mawanella', 'Warakapola', 'Avissawella', 'Horana',
+                    'Mathugama', 'Aluthgama', 'Ambalangoda', 'Elpitiya', 'Karapitiya', 'Kamburupitiya',
+                    'Walasmulla', 'Beliatta', 'Tissamaharama', 'Kataragama', 'Monaragala', 'Wellawaya',
+                    'Buttala', 'Mahiyanganaya', 'Bibile', 'Ampara', 'Kalmunai', 'Sammanthurai',
+                    'Akkaraipattu', 'Pottuvil', 'Maligawila', 'Siyambalanduwa', 'Dehiattakandiya',
+                    'Polonnaruwa', 'Hingurakgoda', 'Dimbulagala', 'Medirigiriya', 'Minneriya',
+                    'Habarana', 'Kekirawa', 'Galkiriyagama', 'Tambuttegama', 'Rajanganaya',
+                    'Thambuttegama', 'Madatugama', 'Nochchiyagama', 'Talawa', 'Kahatagasdigiliya',
+                    'Rideegama', 'Nattandiya', 'Madampe', 'Udappuwa', 'Marawila', 'Lunuwila'
+                ];
+
+                this.initializeApp();
+            }
+
+            initializeApp() {
+                this.setupSpeechRecognition();
+                this.attachEventListeners();
+                this.showStatus('Welcome! Enter pickup and drop-off locations or use voice input.', 'success');
+            }
+
+            setupSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    this.recognition.lang = 'en-US';
+                    this.recognition.maxAlternatives = 1;
+
+                    this.recognition.onstart = () => {
+                        this.isListening = true;
+                        this.micButton.classList.add('listening');
+                        this.listeningIndicator.style.display = 'block';
+                        this.showStatus('Listening... Speak your location now', 'success');
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        this.processVoiceInput(transcript);
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        if (event.error === 'no-speech') {
+                            this.showStatus('No speech detected. Please try again and speak clearly.', 'error');
+                        } else if (event.error === 'not-allowed') {
+                            this.showStatus('Microphone access denied. Please allow microphone permission.', 'error');
+                        } else if (event.error === 'network') {
+                            this.showStatus('Network error. Please check your connection.', 'error');
+                        } else {
+                            this.showStatus('Voice recognition not available. Please type your location.', 'error');
+                        }
+                        this.stopListening();
+                    };
+
+                    this.recognition.onend = () => {
+                        this.stopListening();
+                    };
+                } else {
+                    this.showStatus('Voice recognition not supported in this browser', 'error');
+                }
+            }
+
+            attachEventListeners() {
+                this.micButton.addEventListener('click', () => this.toggleVoiceInput());
+                this.goButton.addEventListener('click', () => this.bookRide());
+                this.openMapsButton.addEventListener('click', () => this.openInGoogleMaps());
+
+                this.pickupInput.addEventListener('input', (e) => this.handleLocationInput(e, 'pickup'));
+                this.dropoffInput.addEventListener('input', (e) => this.handleLocationInput(e, 'dropoff'));
+                this.pickupInput.addEventListener('focus', () => this.currentInput = 'pickup');
+                this.dropoffInput.addEventListener('focus', () => this.currentInput = 'dropoff');
+
+                // Update go button state
+                [this.pickupInput, this.dropoffInput].forEach(input => {
+                    input.addEventListener('input', () => this.updateGoButtonState());
+                });
+            }
+
+            handleLocationInput(event, type) {
+                const value = event.target.value;
+                if (value.length > 2) {
+                    this.showLocationSuggestions(value, type);
+                } else {
+                    this.hideLocationSuggestions(type);
+                }
+            }
+
+            showLocationSuggestions(query, type) {
+                const suggestions = this.sriLankanLocations.filter(location => 
+                    location.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, 5);
+
+                const suggestionsDiv = document.getElementById(`${type}-suggestions`);
+                
+                if (suggestions.length > 0) {
+                    suggestionsDiv.innerHTML = suggestions.map(location => 
+                        `<div class="suggestion-item" onclick="app.selectLocation('${location}', '${type}')">${location}</div>`
+                    ).join('');
+                    suggestionsDiv.style.display = 'block';
+                } else {
+                    suggestionsDiv.style.display = 'none';
+                }
+            }
+
+            hideLocationSuggestions(type) {
+                document.getElementById(`${type}-suggestions`).style.display = 'none';
+            }
+
+            selectLocation(location, type) {
+                document.getElementById(type).value = location;
+                this.hideLocationSuggestions(type);
+                this.updateGoButtonState();
+                
+                if (type === 'pickup') {
+                    this.pickupLocation = location;
+                } else {
+                    this.dropoffLocation = location;
+                }
+            }
+
+            toggleVoiceInput() {
+                if (!this.recognition) {
+                    this.showStatus('Voice recognition not available', 'error');
+                    return;
+                }
+
+                if (this.isListening) {
+                    this.recognition.stop();
+                } else {
+                    this.recognition.start();
+                }
+            }
+
+            stopListening() {
+                this.isListening = false;
+                this.micButton.classList.remove('listening');
+                this.listeningIndicator.style.display = 'none';
+            }
+
+            processVoiceInput(transcript) {
+                const cleanTranscript = transcript.toLowerCase().trim();
+                
+                // Parse voice input for pickup and drop locations
+                if (cleanTranscript.includes('pickup') || cleanTranscript.includes('from')) {
+                    const location = this.extractLocationFromSpeech(cleanTranscript, ['pickup', 'from']);
+                    if (location) {
+                        this.pickupInput.value = location;
+                        this.pickupLocation = location;
+                        this.showStatus(`Pickup location set to: ${location}`, 'success');
+                    }
+                } else if (cleanTranscript.includes('drop') || cleanTranscript.includes('to')) {
+                    const location = this.extractLocationFromSpeech(cleanTranscript, ['drop', 'to']);
+                    if (location) {
+                        this.dropoffInput.value = location;
+                        this.dropoffLocation = location;
+                        this.showStatus(`Drop-off location set to: ${location}`, 'success');
+                    }
+                } else {
+                    // If no specific keyword, try to match location directly
+                    const matchedLocation = this.findBestLocationMatch(cleanTranscript);
+                    if (matchedLocation) {
+                        if (this.currentInput === 'dropoff' || this.pickupInput.value) {
+                            this.dropoffInput.value = matchedLocation;
+                            this.dropoffLocation = matchedLocation;
+                            this.showStatus(`Drop-off location set to: ${matchedLocation}`, 'success');
+                        } else {
+                            this.pickupInput.value = matchedLocation;
+                            this.pickupLocation = matchedLocation;
+                            this.showStatus(`Pickup location set to: ${matchedLocation}`, 'success');
+                        }
+                    } else {
+                        this.showStatus(`Could not recognize location: "${transcript}". Try speaking clearly.`, 'error');
+                    }
+                }
+
+                this.updateGoButtonState();
+            }
+
+            extractLocationFromSpeech(speech, keywords) {
+                for (let keyword of keywords) {
+                    const index = speech.indexOf(keyword);
+                    if (index !== -1) {
+                        const afterKeyword = speech.substring(index + keyword.length).trim();
+                        return this.findBestLocationMatch(afterKeyword);
+                    }
+                }
+                return null;
+            }
+
+            findBestLocationMatch(input) {
+                const normalizedInput = input.replace(/[^\w\s]/g, '').toLowerCase();
+                
+                // Direct match
+                for (let location of this.sriLankanLocations) {
+                    if (normalizedInput.includes(location.toLowerCase()) || 
+                        location.toLowerCase().includes(normalizedInput)) {
+                        return location;
+                    }
+                }
+
+                // Fuzzy match for common variations
+                const variations = {
+                    'colombo': ['colombo', 'colmbo', 'kolombo'],
+                    'kandy': ['kandy', 'kandi', 'candy'],
+                    'galle': ['galle', 'gal', 'gall'],
+                    'negombo': ['negombo', 'negambo', 'nigombo'],
+                    'jaffna': ['jaffna', 'jafna', 'yaazhpanam']
+                };
+
+                for (let [standard, variants] of Object.entries(variations)) {
+                    if (variants.some(variant => normalizedInput.includes(variant))) {
+                        return this.sriLankanLocations.find(loc => loc.toLowerCase() === standard);
+                    }
+                }
+
+                return null;
+            }
+
+            updateGoButtonState() {
+                const hasPickup = this.pickupInput.value.trim() !== '';
+                const hasDropoff = this.dropoffInput.value.trim() !== '';
+                
+                this.goButton.disabled = !(hasPickup && hasDropoff);
+                
+                if (hasPickup && hasDropoff) {
+                    this.goButton.textContent = 'Book Ride 🚗';
+                } else {
+                    this.goButton.textContent = 'Enter Both Locations';
+                }
+            }
+
+            bookRide() {
+                const pickup = this.pickupInput.value.trim();
+                const dropoff = this.dropoffInput.value.trim();
+
+                if (!pickup || !dropoff) {
+                    this.showStatus('Please enter both pickup and drop-off locations', 'error');
+                    return;
+                }
+
+                // Validate Sri Lankan locations
+                const isPickupValid = this.isValidSriLankanLocation(pickup);
+                const isDropoffValid = this.isValidSriLankanLocation(dropoff);
+
+                if (!isPickupValid || !isDropoffValid) {
+                    this.showStatus('Please use valid Sri Lankan locations', 'error');
+                    return;
+                }
+
+                this.showStatus(`🎉 Booking confirmed! Pickup: ${pickup} → Drop-off: ${dropoff}`, 'success');
+                this.openMapsButton.style.display = 'block';
+                
+                // Simulate booking process
+                setTimeout(() => {
+                    this.showStatus(`Driver assigned! ETA: 5-10 minutes. Track your ride in Google Maps.`, 'success');
+                }, 2000);
+            }
+
+            isValidSriLankanLocation(location) {
+                return this.sriLankanLocations.some(sriLankanLocation => 
+                    sriLankanLocation.toLowerCase().includes(location.toLowerCase()) ||
+                    location.toLowerCase().includes(sriLankanLocation.toLowerCase())
+                );
+            }
+
+            openInGoogleMaps() {
+                const pickup = this.pickupInput.value.trim();
+                const dropoff = this.dropoffInput.value.trim();
+                
+                if (pickup && dropoff) {
+                    const mapsUrl = `https://www.google.com/maps/dir/${encodeURIComponent(pickup + ', Sri Lanka')}/${encodeURIComponent(dropoff + ', Sri Lanka')}`;
+                    window.open(mapsUrl, '_blank');
+                }
+            }
+
+            showStatus(message, type = '') {
+                this.statusDiv.textContent = message;
+                this.statusDiv.className = `status-message ${type}`;
+                this.statusDiv.style.display = 'block';
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        if (this.statusDiv.textContent === message) {
+                            this.statusDiv.style.display = 'none';
+                        }
+                    }, 5000);
+                }
+            }
+        }
+
+        // Initialize the app
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new DeliveryApp();
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.location-input')) {
+                document.querySelectorAll('.location-suggestions').forEach(div => {
+                    div.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
